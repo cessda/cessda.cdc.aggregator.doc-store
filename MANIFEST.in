@@ -1,0 +1,7 @@
+include VERSION
+include *.rst
+include *.md
+include *.txt
+include tox.ini
+include .pylintrc
+include .coveragerc
