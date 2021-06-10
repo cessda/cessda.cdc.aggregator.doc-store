@@ -13,8 +13,9 @@ from cdcagg_common.records import (
 
 class CDCAggDatabase(DocumentStoreDatabase):
 
-    def _get_record_by_collection(self, collection):
-        return record_by_collection_name(collection.name)
+    @staticmethod
+    def _get_record_by_collection_name(name):
+        return record_by_collection_name(name)
 
 
 def db_from_settings(settings):
@@ -25,7 +26,6 @@ def db_from_settings(settings):
         **validation.default_schema_item(RecordBase._metadata.attr_cmm_type.name),
         # TODO ENUM schema item
         **validation.default_schema_item(RecordBase._metadata.attr_status.name),
-        # TODO float schema item
         **validation.default_schema_item(RecordBase._metadata.attr_schema_version.name)
     }
     provenance_schema_items = {

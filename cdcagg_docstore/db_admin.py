@@ -21,7 +21,7 @@ from motor.motor_tornado import MotorClient
 from kuha_common import conf
 from kuha_document_store.database import mongodburi
 # CDC Aggregator
-from cdcagg import iter_collections
+from . import iter_collections
 from .controller import add_cli_args
 
 

@@ -48,7 +48,7 @@ def _collection_validator(collection_name, record_class, required=None):
             'description': 'Must be date or null and is required'
         },
         record_class._metadata.attr_schema_version.path: {
-            'bsonType': mdb_const.MDB_TYPE_DOUBLE,
+            'bsonType': mdb_const.MDB_TYPE_STRING,
             'description': 'Must be double and is required'
         },
         record_class._metadata.attr_cmm_type.path: {
