@@ -16,7 +16,7 @@ _logger = logging.getLogger(__name__)
 
 
 def configure():
-    conf.load(prog='cdcagg.docstore', package='cdcagg', env_var_prefix='CDCAGG_')
+    conf.load(prog='cdcagg_docstore', package='cdcagg_docstore', env_var_prefix='CDCAGG_')
     conf.add_print_arg()
     conf.add_config_arg()
     conf.add_loglevel_arg()
@@ -28,7 +28,10 @@ def configure():
              default='v0', type=str, env_var='DOCSTORE_API_VERSION')
     server.add_cli_args()
     controller.add_cli_args(conf)
-    return conf.get_conf()
+    settings = conf.get_conf()
+    set_ctx_populator(server.serverlog_ctx_populator)
+    setup_app_logging(conf.get_package(), loglevel=settings.loglevel, port=settings.port)
+    return settings
 
 
 def main():
@@ -37,8 +40,6 @@ def main():
         print('Print active configuration and exit\n')
         conf.print_conf()
         return 0
-    set_ctx_populator(server.serverlog_ctx_populator)
-    setup_app_logging('cdcagg.docstore', loglevel=settings.loglevel, port=settings.port)
     try:
         db = controller.db_from_settings(settings)
         app = get_app(settings.api_version,
