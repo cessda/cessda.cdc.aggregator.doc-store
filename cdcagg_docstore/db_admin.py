@@ -175,11 +175,12 @@ async def remove_users(ops_setup):
 
 
 def configure():
-    parser = conf.load(prog='cdcagg_docstore.db_admin',
-                       description=__doc__)
+    conf.load(prog='cdcagg_docstore.db_admin',
+              env_var_prefix='CDCAGG_',
+              description=__doc__)
     conf.add_print_arg()
     conf.add_config_arg()
-    add_cli_args(parser)
+    add_cli_args(conf)
     conf.add('operations', nargs='+', help='Operations to perform',
              choices=list(_ops.operations.keys()))
     return conf.get_conf()
