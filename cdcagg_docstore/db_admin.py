@@ -194,6 +194,12 @@ def configure():
     conf.add_print_arg()
     conf.add_config_arg()
     add_cli_args(conf)
+    conf.add('--database-user-admin', help='Username for MongoDB administration. If not '
+             'submitted via configuration, the program will prompt admin credentials on '
+             'startup.', env_var='DBUSER_ADMIN')
+    conf.add('--database-pass-admin', help='Password for MongoDB administration. If not '
+             'submitted via configuration, the program will prompt admin credentials on '
+             'startup.', env_var='DBPASS_ADMIN')
     conf.add('operations', nargs='+', help='Operations to perform',
              choices=list(_ops.operations.keys()))
     return conf.get_conf()
@@ -205,9 +211,14 @@ def main():
         print('Print active configuration and exit\n')
         conf.print_conf()
         return 0
-    print('Give database administrator credentials')
-    admin_username = input('Admin username: ')
-    admin_password = getpass('Admin password: ')
+    admin_username = settings.database_user_admin
+    admin_password = settings.database_pass_admin
+    if admin_username is None:
+        print('Give database administrator username')
+        admin_username = input('Admin username: ')
+    if admin_password is None:
+        print('Give database administrator password')
+        admin_password = getpass('Admin password: ')
     _ops.setup(admin_username, admin_password, settings)
     for operation in settings.operations:
         op_fun = _ops.get(operation)

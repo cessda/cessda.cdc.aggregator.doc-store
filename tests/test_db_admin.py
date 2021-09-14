@@ -59,17 +59,42 @@ class TestConfigure(KuhaUnitTestCase):
     def test_calls_add_on_conf(self, mock_add_cli_args, mock_conf):
         mock_conf.add.assert_not_called()
         db_admin.configure()
-        self.assertEqual(mock_conf.add.call_count, 1)
-        call_args, call_kwargs = mock_conf.add.call_args
-        self.assertEqual(call_args, ('operations',))
-        self.assertEqual(call_kwargs['nargs'], '+')
-        self.assertEqual(call_kwargs['help'], 'Operations to perform')
-        self.assertCountEqual(call_kwargs['choices'],
-                              ['drop_collections', 'list_databases', 'initiate_replicaset',
-                               'list_collections', 'setup_collections', 'remove_users',
-                               'setup_database', 'list_admin_users', 'show_replicaset_config',
-                               'list_users', 'drop_database', 'setup_users',
-                               'list_collection_indexes', 'show_replicaset_status'])
+        self.assertEqual(mock_conf.add.call_count, 3)
+        calls = mock_conf.add.call_args_list
+        exp_calls = {
+            '--database-user-admin': {
+                'help': 'Username for MongoDB administration. If not '
+                        'submitted via configuration, the program will '
+                        'prompt admin credentials on startup.',
+                'env_var': 'DBUSER_ADMIN'},
+            '--database-pass-admin': {
+                'help': 'Password for MongoDB administration. If not '
+                        'submitted via configuration, the program will '
+                        'prompt admin credentials on startup.',
+                'env_var': 'DBPASS_ADMIN'},
+            'operations': {
+                'nargs': '+',
+                'help': 'Operations to perform',
+                'choices': ['drop_collections', 'list_databases', 'initiate_replicaset',
+                            'list_collections', 'setup_collections', 'remove_users',
+                            'setup_database', 'list_admin_users', 'show_replicaset_config',
+                            'list_users', 'drop_database', 'setup_users',
+                            'list_collection_indexes', 'show_replicaset_status']
+            }}
+        self.assertEqual(len(calls), len(exp_calls))
+        for call in calls:
+            cargs, ckwargs = call
+            self.assertEqual(len(cargs), 1)
+            carg = cargs[0]
+            self.assertIn(carg, exp_calls)
+            exp_ckwargs = exp_calls.pop(carg)
+            if carg == 'operations':
+                self.assertIn('choices', ckwargs)
+                cchoices = ckwargs.pop('choices')
+                exp_choices = exp_ckwargs.pop('choices')
+                self.assertCountEqual(cchoices, exp_choices)
+            self.assertEqual(ckwargs, exp_ckwargs)
+        self.assertEqual(exp_calls, {})
 
     def test_returns_result_of_conf_get(self, mock_conf):
         rval = db_admin.configure()
@@ -83,6 +108,7 @@ class TestMain(KuhaUnitTestCase):
 
     def test_calls_configure(self, mock_getpass, mock_input, mock_configure):
         settings = Namespace(print_configuration=False, database_name='db', operations=[],
+                             database_user_admin=None, database_pass_admin=None,
                              replica=['url', 'url2'], replicaset='replset')
         mock_configure.return_value = settings
         mock_configure.assert_not_called()
@@ -125,8 +151,45 @@ class DBOperationsTestBase(KuhaUnitTestCase):
                              replicaset=kw.pop('replicaset', 'replicaset'),
                              replica=kw.pop('replica', ['localhost:1111', 'localhost:2222', 'localhost:3333']),
                              operations=kw.pop('operations', []),
+                             database_pass_admin=kw.pop('database_pass_admin', None),
+                             database_user_admin=kw.pop('database_user_admin', None),
                              **kw)
         self.mock_configure.return_value = settings
+
+
+class TestCredentialsPrompt(DBOperationsTestBase):
+
+    def setUp(self):
+        super().setUp()
+        self.mock_client.admin.command = mock.Mock(side_effect=MockCoro('result'))
+
+    def _settings(self, **kw):
+        kw['operations'] = kw.get('operations', ['initiate_replicaset'])
+        super()._settings(**kw)
+
+    def test_prompts_credentials(self):
+        self._settings()
+        db_admin.main()
+        self.mock_input.assert_called_once_with('Admin username: ')
+        self.mock_getpass.assert_called_once_with('Admin password: ')
+
+    def test_does_not_prompt_credentials(self):
+        self._settings(database_user_admin='adminuser', database_pass_admin='password')
+        db_admin.main()
+        self.mock_input.assert_not_called()
+        self.mock_getpass.assert_not_called()
+
+    def test_prompts_username(self):
+        self._settings(database_pass_admin='password')
+        db_admin.main()
+        self.mock_input.assert_called_once_with('Admin username: ')
+        self.mock_getpass.assert_not_called()
+
+    def test_prompts_password(self):
+        self._settings(database_user_admin='adminuser')
+        db_admin.main()
+        self.mock_input.assert_not_called()
+        self.mock_getpass.assert_called_once_with('Admin password: ')
 
 
 class TestInitiateReplicaset(DBOperationsTestBase):
@@ -149,7 +212,8 @@ class TestInitiateReplicaset(DBOperationsTestBase):
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_prints_output(self, mock_stdout):
-        expected = ("Give database administrator credentials\n"
+        expected = ("Give database administrator username\n"
+                    "Give database administrator password\n"
                     "Running operation initiate_replicaset ...\n"
                     "initiate_replicaset result:\n"
                     "'result'\n")
@@ -171,7 +235,8 @@ class TestShowReplicasetStatus(DBOperationsTestBase):
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_prints_output(self, mock_stdout):
-        expected = ("Give database administrator credentials\n"
+        expected = ("Give database administrator username\n"
+                    "Give database administrator password\n"
                     "Running operation show_replicaset_status ...\n"
                     "show_replicaset_status result:\n"
                     "'replicaset status'\n")
@@ -193,7 +258,8 @@ class TestShowReplicasetConfig(DBOperationsTestBase):
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_prints_output(self, mock_stdout):
-        expected = ("Give database administrator credentials\n"
+        expected = ("Give database administrator username\n"
+                    "Give database administrator password\n"
                     "Running operation show_replicaset_config ...\n"
                     "show_replicaset_config result:\n"
                     "'replicaset configuration'\n")
@@ -214,7 +280,8 @@ class TestSetupDatabase(DBOperationsTestBase):
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_prints_output(self, mock_stdout):
-        expected = ("Give database administrator credentials\n"
+        expected = ("Give database administrator username\n"
+                    "Give database administrator password\n"
                     "Running operation setup_database ...\n"
                     "setup_database result:\n"
                     "'mydatabase'\n")
@@ -237,7 +304,8 @@ class TestListDatabases(DBOperationsTestBase):
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_prints_output(self, mock_stdout):
-        expected = ("Give database administrator credentials\n"
+        expected = ("Give database administrator username\n"
+                    "Give database administrator password\n"
                     "Running operation list_databases ...\n"
                     "list_databases result:\n"
                     "['my', 'databases']\n")
@@ -291,7 +359,8 @@ class TestSetupCollections(DBOperationsTestBase):
         async def _side_eff(collname, *args, **kwargs):
             return collname
 
-        expected = ("Give database administrator credentials\n"
+        expected = ("Give database administrator username\n"
+                    "Give database administrator password\n"
                     "Running operation setup_collections ...\n"
                     "setup_collections result:\n"
                     "{'studies': [[('study_number', -1)], [('_metadata.updated', -1)]]}\n")
@@ -314,7 +383,8 @@ class TestListCollections(DBOperationsTestBase):
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_prints_output(self, mock_stdout):
-        expected = ("Give database administrator credentials\n"
+        expected = ("Give database administrator username\n"
+                    "Give database administrator password\n"
                     "Running operation list_collections ...\n"
                     "list_collections result:\n"
                     "['list', 'of', 'collections']\n")
@@ -347,7 +417,8 @@ class TestListCollectionIndexes(DBOperationsTestBase):
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_prints_output(self, mock_stdout):
-        expected = ("Give database administrator credentials\n"
+        expected = ("Give database administrator username\n"
+                    "Give database administrator password\n"
                     "Running operation list_collection_indexes ...\n"
                     "list_collection_indexes result:\n"
                     "{'coll_1': ['index1', 'index2'],\n"
@@ -374,7 +445,8 @@ class TestDropCollections(DBOperationsTestBase):
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_print_output(self, mock_stdout):
-        expected = ("Give database administrator credentials\n"
+        expected = ("Give database administrator username\n"
+                    "Give database administrator password\n"
                     "Running operation drop_collections ...\n"
                     "drop_collections result:\n"
                     "['dropped']\n")
@@ -396,7 +468,8 @@ class TestListAdminUsers(DBOperationsTestBase):
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_prints_output(self, mock_stdout):
-        expected = ("Give database administrator credentials\n"
+        expected = ("Give database administrator username\n"
+                    "Give database administrator password\n"
                     "Running operation list_admin_users ...\n"
                     "list_admin_users result:\n"
                     "['list', 'admin', 'users']\n")
@@ -426,7 +499,8 @@ class TestSetupUsers(DBOperationsTestBase):
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_prints_output(self, mock_stdout):
-        expected = ("Give database administrator credentials\n"
+        expected = ("Give database administrator username\n"
+                    "Give database administrator password\n"
                     "Running operation setup_users ...\n"
                     "setup_users result:\n"
                     "['created', 'created']\n")
@@ -448,7 +522,8 @@ class TestListUsers(DBOperationsTestBase):
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_prints_output(self, mock_stdout):
-        expected = ("Give database administrator credentials\n"
+        expected = ("Give database administrator username\n"
+                    "Give database administrator password\n"
                     "Running operation list_users ...\n"
                     "list_users result:\n"
                     "['list', 'users']\n")
@@ -475,7 +550,8 @@ class TestRemoveUsers(DBOperationsTestBase):
 
     @mock.patch('sys.stdout', new_callable=StringIO)
     def test_prints_output(self, mock_stdout):
-        expected = ("Give database administrator credentials\n"
+        expected = ("Give database administrator username\n"
+                    "Give database administrator password\n"
                     "Running operation remove_users ...\n"
                     "remove_users result:\n"
                     "['removed', 'removed']\n")
