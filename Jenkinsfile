@@ -163,6 +163,13 @@ node(node_label) {
                 }
             }
         }
+        if (env.BRANCH_NAME == 'main') {
+            stage('Push Docker image') {
+                sh 'gcloud auth configure-docker'
+                sh "docker push ${image_tag}"
+                sh "gcloud container images add-tag ${image_tag} ${docker_repo}/${product_name}-${module_name}:${env.BRANCH_NAME}-latest"
+            }
+        }
     } catch (err) {
         currentBuild.result = 'FAILURE'
         sendmail('FAILURE')
