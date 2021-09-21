@@ -167,7 +167,7 @@ node(node_label) {
             stage('Push Docker image') {
                 sh 'gcloud auth configure-docker'
                 sh "docker push ${image_tag}"
-                sh "gcloud container images add-tag ${image_tag} ${docker_repo}/${product_name}-${module_name}:${env.BRANCH_NAME}-latest"
+                sh "gcloud container images add-tag ${image_tag} ${docker_repo}/cdcagg-docstore:${env.BRANCH_NAME}-latest"
             }
         }
     } catch (err) {
