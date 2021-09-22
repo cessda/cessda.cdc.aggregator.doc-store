@@ -21,6 +21,17 @@ with open('VERSION', 'r') as file_obj:
     version = file_obj.readline().strip()
 
 
+requires = [
+    'tornado',
+    'motor',
+    'pymongo',
+    'cerberus',
+    'kuha_common>=1.0.0',
+    'kuha_document_store>=1.0.0',
+    'cdcagg_common>=0.1.0'
+]
+
+
 setup(name='cdcagg_docstore',
       version=version,
       url='https://bitbucket.org/cessda/cessda.cdc.aggregator.doc-store',
@@ -30,6 +41,7 @@ setup(name='cdcagg_docstore',
       author_email='toni.sissala@tuni.fi',
       packages=find_packages(exclude=['tests']),
       include_package_data=True,
+      install_requires=requires,
       classifiers=(
           'Development Status :: 1 - Planning',
           'Environment :: Console',
