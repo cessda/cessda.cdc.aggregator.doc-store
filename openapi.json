@@ -1,0 +1,522 @@
+{
+    "openapi": "3.0.3",
+    "info": {
+        "title": "Some title",
+        "version": "0.0.1"
+    },
+    "components": {
+        "schemas": {
+            "Study": {
+                "description": "This is an excerpt of study schema and provided for example. The actual validating schema is built dynamically from Study attributes in cdcagg_docstore.controller.CDCAggDatabase._prepare_validation_schema().",
+                "type": "object",
+                "required": [
+                    "_aggregator_identifier",
+                    "study_number"
+                ],
+                "properties": {
+                    "_aggregator_identifier": {
+                        "type": "string",
+                        "description": "Identifier of an OAI-PMH aggregator record."
+                    },
+                    "study_number": {
+                        "type": "string",
+                        "description": "Encoded source URL. Not used in Aggregator context, but required by Kuha2 Study model."
+                    },
+                    "study_titles": {
+                        "type": "array",
+                        "description": "Localizable study titles.",
+                        "items": {
+                            "type": "object",
+                            "properties": {
+                                "study_title": {
+                                    "type": "string",
+                                    "description": "Localized study title."
+                                },
+                                "language": {
+                                    "type": "string",
+                                    "description": "Study title language."
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "errorResponse": {
+                "type": "object",
+                "properties": {
+                    "code": {
+                        "type": "integer",
+                        "description": "HTTP status code"
+                    },
+                    "message": {
+                        "type": "string",
+                        "description": "Detailed error message"
+                    }
+                }
+            },
+            "operationResponse": {
+                "type": "object",
+                "properties": {
+                    "error": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Details of an error if any."
+                    },
+                    "affected_resource": {
+                        "type": "string",
+                        "description": "Record id"
+                    },
+                    "result": {
+                        "type": "string",
+                        "description": "Operation result"
+                    }
+                }
+            },
+            "Query": {
+                "type": "object",
+                "properties": {
+                    "_filter": {
+                        "type": "object",
+                        "description": "Query filter. Used for all query types. Requests may specify multiple filter conditions inside the _filter object. Supported MongoDB operators: $exists, $ne, $lt, $lte, $gt, $gte, $in, $oid, $isodate, $and, $not, $nor, $or, $elemMatch",
+                        "items": {}
+                    },
+                    "fields": {
+                        "type": "array",
+                        "description": "List the fields that get returned by select-query. Default is to return all fields.",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "skip": {
+                        "type": "integer",
+                        "description": "Number of documents to skip from the beginning of select-query results."
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "description": "Limit the number of returned documents in select-query."
+                    },
+                    "sort_by": {
+                        "type": "string",
+                        "description": "Sort the documents by field in select-query."
+                    },
+                    "sort_order": {
+                        "type": "integer",
+                        "description": "Sort order of returned documents in select-query. 1 = ascending, -1 = descending."
+                    },
+                    "fieldname": {
+                        "type": "string",
+                        "description": "Mandatory parameter for distinct-query. Query distinct values for this field."
+                    }
+                }
+            },
+            "queryCountResponse": {
+                "type": "object",
+                "description": "Response body for count-query.",
+                "properties": {
+                    "count": {
+                        "type": "integer",
+                        "description": "Number of records matching the query criteria"
+                    }
+                }
+            },
+            "queryDistinctResponse": {
+                "type": "object",
+                "description": "Response body for distinct-query. Response object's key is the requested `fieldname` and its value is an array of distinct values."
+            }
+        }
+    },
+    "paths": {
+        "/v0/studies": {
+            "get": {
+                "description": "Returns all studies",
+                "tags": ["REST API"],
+                "responses": {
+                    "200": {
+                        "description": "Stream every study as a JSON document.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Study"
+                                },
+                                "example": {
+                                    "_id": {
+                                        "$oid": "618a2bbec4d2ad5efaf021b4"
+                                    },
+                                    "_aggregator_identifier": "some_id",
+                                    "study_number": "some_number",
+                                    "study_titles": [
+                                        {
+                                            "language": "en",
+                                            "study_title": "some_title"
+                                        }
+                                    ],
+                                    "_metadata": {
+                                        "created": "2021-11-09T08:05:18Z",
+                                        "updated": "2021-11-09T08:05:18Z",
+                                        "deleted": null,
+                                        "status": "created",
+                                        "cmm_type": "study",
+                                        "schema_version": "1.0"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "parameters": [{
+                    "name": "Content-Type",
+                    "in": "header",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "enum": ["application/json"]
+                    }
+                }],
+                "description": "Create a new study",
+                "tags": ["REST API"],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Study"
+                            },
+                            "example": {
+                                "_aggregator_identifier": "some_id",
+                                "study_number": "some_number",
+                                "study_titles": [{
+                                    "language": "en",
+                                    "study_title": "some_title"
+                                }]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Study was created succesfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/operationResponse"
+                                },
+                                "example": {
+                                    "error": null,
+                                    "affected_resource": "6183e228b578839f8d62786c",
+                                    "result": "insert_successful"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/errorResponse"
+                                },
+                                "example": {
+                                    "code": 400,
+                                    "message": "HTTP 400: Bad Request (('Validation of studies failed', {'study_titles': [{0: [{'language': ['required field']}]}]}))"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "parameters": [{
+                    "in": "query",
+                    "name": "delete_type",
+                    "description": "Controls delete type: soft or hard. Defaults to soft, which does a logical delete.",
+                    "schema": {
+                        "type": "string",
+                        "enum": ["soft", "hard"],
+                        "default": "soft"
+                    }
+                }],
+                "description": "Delete all studies",
+                "tags": ["REST API"],
+                "responses": {
+                    "200": {
+                        "description": "Studies were deleted succesfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/operationResponse"
+                                },
+                                "example": {
+                                    "error": null,
+                                    "affected_resource": "affected 10 records",
+                                    "result": "delete_successful"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/errorResponse"
+                                },
+                                "example": {
+                                    "code": 400,
+                                    "message": "HTTP 400: Bad Request (Invalid delete type 'invalid'. Endpoint supports 'soft', 'hard')"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v0/studies/{resource_id}": {
+            "parameters": [{
+                "name": "resource_id",
+                "in": "path",
+                "required": true,
+                "schema": {
+                    "type": "string"
+                },
+                "example": "618a2bbec4d2ad5efaf021b4"
+            }],
+            "get": {
+                "description": "Returns a study",
+                "tags": ["REST API"],
+                "responses": {
+                    "200": {
+                        "description": "Return a study as a JSON document.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/Study"
+                                },
+                                "example": {
+                                    "_id": {
+                                        "$oid": "618a2bbec4d2ad5efaf021b4"
+                                    },
+                                    "_aggregator_identifier": "some_id",
+                                    "study_number": "some_number",
+                                    "study_titles": [
+                                        {
+                                            "language": "en",
+                                            "study_title": "some_title"
+                                        }
+                                    ],
+                                    "_metadata": {
+                                        "created": "2021-11-09T08:05:18Z",
+                                        "updated": "2021-11-09T08:05:18Z",
+                                        "deleted": null,
+                                        "status": "created",
+                                        "cmm_type": "study",
+                                        "schema_version": "1.0"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "parameters": [{
+                    "name": "Content-Type",
+                    "in": "header",
+                    "required": true,
+                    "schema": {
+                        "type": "string",
+                        "enum": ["application/json"]
+                    }
+                }],
+                "description": "Update a study",
+                "tags": ["REST API"],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Study"
+                            },
+                            "example": {
+                                "_aggregator_identifier": "some_id",
+                                "study_number": "some_number",
+                                "study_titles": [
+                                    {
+                                        "language": "en",
+                                        "study_title": "some_title"
+                                    }
+                                ]
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Study was updated succesfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/operationResponse"
+                                },
+                                "example": {
+                                    "error": null,
+                                    "affected_resource": "618a2bbec4d2ad5efaf021b4",
+                                    "result": "replace_successful"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/errorResponse"
+                                },
+                                "example": {
+                                    "code": 400,
+                                    "message": "HTTP 400: Bad Request (('Validation of studies failed', {'invalid_key': ['unknown field']}))"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "parameters": [{
+                    "in": "query",
+                    "name": "delete_type",
+                    "description": "Controls delete type: soft or hard. Defaults to soft, which does a logical delete.",
+                    "schema": {
+                        "type": "string",
+                        "enum": ["soft", "hard"],
+                        "default": "soft"
+                    }
+                }],
+                "description": "Delete a study",
+                "tags": ["REST API"],
+                "responses": {
+                    "200": {
+                        "description": "Study was deleted succesfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/operationResponse"
+                                },
+                                "example": {
+                                    "error": null,
+                                    "affected_resource": "6183e228b578839f8d62786c",
+                                    "result": "delete_successful"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/errorResponse"
+                                },
+                                "example": {
+                                    "code": 400,
+                                    "message": "HTTP 400: Bad Request (Invalid delete type 'invalid'. Endpoint supports 'soft', 'hard')"
+                                }
+                            }
+                        }
+                    },
+                    "409": {
+                        "description": "Object is in conflicting state.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/errorResponse"
+                                },
+                                "example": {
+                                    "code": 409,
+                                    "message": "HTTP 409: Conflict (Resource is logically deleted)"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/v0/query/studies": {
+            "parameters": [{
+                "name": "Content-Type",
+                "in": "header",
+                "required": true,
+                "schema": {
+                    "type": "string",
+                    "enum": ["application/json"]
+                }
+            }, {
+                "name": "query_type",
+                "in": "query",
+                "description": "Controls the query type. Note that request and response bodies are different for each query type.",
+                "required": false,
+                "schema": {
+                    "type": "string",
+                    "enum": ["select", "count", "distinct"],
+                    "default": "select"
+                }
+            }],
+            "post": {
+                "description": "Execute query and stream results as JSON documents. Request and response bodies are different in each query type. ",
+                "tags": ["Query API"],
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Query"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful query. Response body is different for each query type.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "oneOf": [
+                                        {"$ref": "#/components/schemas/Study"},
+                                        {"$ref": "#/components/schemas/queryCountResponse"},
+                                        {"$ref": "#/components/schemas/queryDistinctResponse"}
+                                    ]
+                                },
+                                "examples": {
+                                    "select-query": {
+                                        "value": {
+                                            "_aggregator_identifier": "some_id",
+                                            "study_number": "some_number",
+                                            "study_titles": [
+                                                {
+                                                    "language": "en",
+                                                    "study_title": "some_title"
+                                                }
+                                            ]
+                                        }
+                                    },
+                                    "count-query": {
+                                        "value": {
+                                            "count": 15
+                                        }
+                                    },
+                                    "distinct-query": {
+                                        "value": {
+                                            "study_titles.language": [
+                                                "en",
+                                                "fi"
+                                            ]
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
