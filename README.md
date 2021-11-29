@@ -13,7 +13,8 @@
 [![Technical Debt](https://sonarqube.cessda.eu/api/project_badges/measure?project=cessda.cdc.aggregator.doc-store&metric=sqale_index)](https://sonarqube.cessda.eu/dashboard?id=cessda.cdc.aggregator.doc-store)
 [![Vulnerabilities](https://sonarqube.cessda.eu/api/project_badges/measure?project=cessda.cdc.aggregator.doc-store&metric=vulnerabilities)](https://sonarqube.cessda.eu/dashboard?id=cessda.cdc.aggregator.doc-store)
 
-HTTP server providing an API in front of a MongoDB cluster. This program is part of CESSDA CDC Aggregator.
+HTTP server providing an API in front of a MongoDB cluster. This
+program is part of CESSDA CDC Aggregator.
 
 ## Installation ##
 
@@ -214,6 +215,6 @@ python -m cdcagg_docstore.db_admin --replica "<ip>:27017"  --replica "<ip>:27018
 ```
 
 
-## License
+## License ##
 
 See the [LICENSE](LICENSE.txt) file.

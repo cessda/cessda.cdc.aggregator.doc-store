@@ -30,38 +30,42 @@ class CDCAggDatabase(DocumentStoreDatabase):
     def _get_record_by_collection_name(name):
         return record_by_collection_name(name)
 
+    @staticmethod
+    async def _prepare_validation_schema(rec_class):
+        if rec_class.get_collection() is not Study.get_collection():
+            raise ValueError("Unsupported record class '%s'" % (rec_class,))
+        metadata_schema_items = {
+            **validation.default_schema_item(RecordBase._metadata.attr_created.name),
+            **validation.default_schema_item(RecordBase._metadata.attr_updated.name),
+            **validation.default_schema_item(RecordBase._metadata.attr_deleted.name, nullable=True),
+            **validation.default_schema_item(RecordBase._metadata.attr_cmm_type.name),
+            # TODO ENUM schema item
+            **validation.default_schema_item(RecordBase._metadata.attr_status.name),
+            **validation.default_schema_item(RecordBase._metadata.attr_schema_version.name)
+        }
+        provenance_schema_items = {
+            **validation.default_schema_item(RecordBase._provenance.attr_base_url.name),
+            **validation.default_schema_item(RecordBase._provenance.attr_identifier.name),
+            **validation.default_schema_item(RecordBase._provenance.attr_datestamp.name),
+            **validation.default_schema_item(RecordBase._provenance.attr_metadata_namespace.name),
+            **validation.default_schema_item(RecordBase._provenance.sub_name.name),
+            **validation.bool_schema_item(RecordBase._provenance.attr_altered.name),
+            **validation.bool_schema_item(RecordBase._provenance.attr_direct.name)
+        }
+        base_schema = {
+            **validation.identifier_schema_item(RecordBase._aggregator_identifier.path),
+            **validation.dict_schema_item(RecordBase._metadata.path, metadata_schema_items),
+            **validation.container_schema_item(RecordBase._provenance.path, provenance_schema_items)}
+        return validation.RecordValidationSchema(
+            Study,
+            base_schema,
+            validation.identifier_schema_item(Study.study_number.path),
+            validation.uniquelist_schema_item(Study.persistent_identifiers.path),
+            validation.bool_schema_item(Study.universes.attr_included.path)
+        )
+
 
 def db_from_settings(settings):
-    metadata_schema_items = {
-        **validation.default_schema_item(RecordBase._metadata.attr_created.name),
-        **validation.default_schema_item(RecordBase._metadata.attr_updated.name),
-        **validation.default_schema_item(RecordBase._metadata.attr_deleted.name, nullable=True),
-        **validation.default_schema_item(RecordBase._metadata.attr_cmm_type.name),
-        # TODO ENUM schema item
-        **validation.default_schema_item(RecordBase._metadata.attr_status.name),
-        **validation.default_schema_item(RecordBase._metadata.attr_schema_version.name)
-    }
-    provenance_schema_items = {
-        **validation.default_schema_item(RecordBase._provenance.attr_base_url.name),
-        **validation.default_schema_item(RecordBase._provenance.attr_identifier.name),
-        **validation.default_schema_item(RecordBase._provenance.attr_datestamp.name),
-        **validation.default_schema_item(RecordBase._provenance.attr_metadata_namespace.name),
-        **validation.default_schema_item(RecordBase._provenance.sub_name.name),
-        **validation.bool_schema_item(RecordBase._provenance.attr_altered.name),
-        **validation.bool_schema_item(RecordBase._provenance.attr_direct.name)
-    }
-    base_schema = {
-        **validation.identifier_schema_item(RecordBase._aggregator_identifier.path),
-        **validation.dict_schema_item(RecordBase._metadata.path, metadata_schema_items),
-        **validation.container_schema_item(RecordBase._provenance.path, provenance_schema_items)}
-    validation.add_schema(Study.collection,
-                          validation.RecordValidationSchema(
-                              Study,
-                              base_schema,
-                              validation.identifier_schema_item(Study.study_number.path),
-                              validation.uniquelist_schema_item(Study.persistent_identifiers.path),
-                              validation.bool_schema_item(Study.universes.attr_included.path)
-                          ))
     reader_uri = mongodburi(*settings.replica, database=settings.database_name,
                             credentials=(settings.database_user_reader,
                                          settings.database_pass_reader))
