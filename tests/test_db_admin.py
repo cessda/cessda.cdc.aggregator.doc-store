@@ -363,7 +363,9 @@ class TestSetupCollections(DBOperationsTestBase):
                     "Give database administrator password\n"
                     "Running operation setup_collections ...\n"
                     "setup_collections result:\n"
-                    "{'studies': [[('study_number', -1)], [('_metadata.updated', -1)]]}\n")
+                    "{'studies': [[('study_number', 1)],\n"
+                    "             [('_aggregator_identifier', 1)],\n"
+                    "             [('_metadata.updated', -1)]]}\n")
         self.mock_create_index.side_effect = MockCoro(func=_side_eff)
         db_admin.main()
         self.assertEqual(mock_stdout.getvalue(), expected)

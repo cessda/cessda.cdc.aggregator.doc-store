@@ -10,21 +10,31 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
+"""Controller is responsible for handling the backend of Document Store.
+"""
+from kuha_common.document_store.records import (
+    REC_STATUS_CREATED,
+    REC_STATUS_DELETED
+)
 from kuha_document_store.database import (
     DocumentStoreDatabase,
     mongodburi
 )
 from kuha_document_store import validation
-from cdcagg_docstore import iter_collections
+
 from cdcagg_common import record_by_collection_name
-from cdcagg_common.records import (
-    Study,
-    RecordBase
-)
+from cdcagg_common.records import Study
+
+from cdcagg_docstore import iter_collections
 
 
 class CDCAggDatabase(DocumentStoreDatabase):
+    """CDC Aggregator Database class.
+
+    Subclass of DocumentStoreDatabase. Overrides methods
+    _get_record_by_collection_name() and _prepare_validation_schema()
+    to support different records that parent class.
+    """
 
     @staticmethod
     def _get_record_by_collection_name(name):
@@ -35,37 +45,43 @@ class CDCAggDatabase(DocumentStoreDatabase):
         if rec_class.get_collection() is not Study.get_collection():
             raise ValueError("Unsupported record class '%s'" % (rec_class,))
         metadata_schema_items = {
-            **validation.default_schema_item(RecordBase._metadata.attr_created.name),
-            **validation.default_schema_item(RecordBase._metadata.attr_updated.name),
-            **validation.default_schema_item(RecordBase._metadata.attr_deleted.name, nullable=True),
-            **validation.default_schema_item(RecordBase._metadata.attr_cmm_type.name),
-            # TODO ENUM schema item
-            **validation.default_schema_item(RecordBase._metadata.attr_status.name),
-            **validation.default_schema_item(RecordBase._metadata.attr_schema_version.name)
+            **validation.default_schema_item(rec_class._metadata.attr_created.name),
+            **validation.default_schema_item(rec_class._metadata.attr_updated.name),
+            **validation.default_schema_item(rec_class._metadata.attr_deleted.name, nullable=True),
+            **validation.str_enum_item(rec_class._metadata.attr_status.name, [REC_STATUS_CREATED,
+                                                                              REC_STATUS_DELETED]),
+            **validation.str_enum_item(rec_class._metadata.attr_schema_version.name, [rec_class.schema_version]),
+            **validation.str_enum_item(rec_class._metadata.attr_cmm_type.name, [rec_class.cmm_type])
         }
         provenance_schema_items = {
-            **validation.default_schema_item(RecordBase._provenance.attr_base_url.name),
-            **validation.default_schema_item(RecordBase._provenance.attr_identifier.name),
-            **validation.default_schema_item(RecordBase._provenance.attr_datestamp.name),
-            **validation.default_schema_item(RecordBase._provenance.attr_metadata_namespace.name),
-            **validation.default_schema_item(RecordBase._provenance.sub_name.name),
-            **validation.bool_schema_item(RecordBase._provenance.attr_altered.name),
-            **validation.bool_schema_item(RecordBase._provenance.attr_direct.name)
+            **validation.default_schema_item(rec_class._provenance.attr_base_url.name),
+            **validation.default_schema_item(rec_class._provenance.attr_identifier.name),
+            **validation.default_schema_item(rec_class._provenance.attr_datestamp.name),
+            **validation.default_schema_item(rec_class._provenance.attr_metadata_namespace.name),
+            **validation.default_schema_item(rec_class._provenance.sub_name.name),
+            **validation.bool_schema_item(rec_class._provenance.attr_altered.name),
+            **validation.bool_schema_item(rec_class._provenance.attr_direct.name)
         }
         base_schema = {
-            **validation.identifier_schema_item(RecordBase._aggregator_identifier.path),
-            **validation.dict_schema_item(RecordBase._metadata.path, metadata_schema_items),
-            **validation.container_schema_item(RecordBase._provenance.path, provenance_schema_items)}
+            **validation.identifier_schema_item(rec_class._aggregator_identifier.path),
+            **validation.dict_schema_item(rec_class._metadata.path, metadata_schema_items),
+            **validation.container_schema_item(rec_class._provenance.path, provenance_schema_items)}
         return validation.RecordValidationSchema(
-            Study,
+            rec_class,
             base_schema,
-            validation.identifier_schema_item(Study.study_number.path),
-            validation.uniquelist_schema_item(Study.persistent_identifiers.path),
-            validation.bool_schema_item(Study.universes.attr_included.path)
+            validation.identifier_schema_item(rec_class.study_number.path),
+            validation.uniquelist_schema_item(rec_class.persistent_identifiers.path),
+            validation.bool_schema_item(rec_class.universes.attr_included.path)
         )
 
 
 def db_from_settings(settings):
+    """Instantiate CDCAggDatabase from loaded settings
+
+    :param :obj:`argparse.Namespace` settings: loaded settings
+    :returns: Instance of CDCAggDatabase
+    :rtype: :obj:`CDCAggDatabase`
+    """
     reader_uri = mongodburi(*settings.replica, database=settings.database_name,
                             credentials=(settings.database_user_reader,
                                          settings.database_pass_reader))
@@ -78,7 +94,11 @@ def db_from_settings(settings):
 
 
 def add_cli_args(parser):
-    parser.add('--replica', 
+    """Adds CLI arguments to argument parser.
+
+    :param :obj:`configargparse.ArgumentParser` parser: Argument parser
+    """
+    parser.add('--replica',
                help='MongoDB replica replica host + port. Repeat for multiple replicas. For example: localhost:27017',
                env_var='DBREPLICAS',
                action='append',
@@ -114,4 +134,3 @@ def add_cli_args(parser):
                default='editor',
                env_var='DBPASS_EDITOR',
                type=str)
-

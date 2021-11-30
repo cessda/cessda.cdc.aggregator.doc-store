@@ -33,7 +33,8 @@ from kuha_document_store.handlers import (
 from cdcagg_common.records import Study
 from cdcagg_docstore import (
     http_api,
-    serve
+    serve,
+    controller
 )
 
 
@@ -103,7 +104,7 @@ class TestCaseBase(testing.AsyncHTTPTestCase):
         self._mock_MotorClient = patcher.start()
 
     def get_app(self):
-        db = database.db_from_settings(self._settings)
+        db = controller.db_from_settings(self._settings)
         return serve.get_app('v0', ['studies'], db=db)
 
     def _assert_response_equal(self, response, exp_code, exp_body=None):
@@ -114,6 +115,12 @@ class TestCaseBase(testing.AsyncHTTPTestCase):
 
 
 class TestRESTApi(TestCaseBase):
+
+    @staticmethod
+    def _valid_study_dict():
+        study = Study()
+        study.add_study_number('some_study_number')
+        return study.export_dict()
 
     def test_GET_studies(self):
         self.mock_studies.find.return_value = async_generate_value([{'some': 'record'}, {'another': 'record'}])
@@ -128,15 +135,55 @@ class TestRESTApi(TestCaseBase):
                                                            body=json_encode({'key': 'value'})), 400)
         self.assertEqual(json_decode(resp_body),
                          {'code': 400,
-                          'message': "HTTP 400: Bad Request (('Validation of studies failed', {'key': "
-                          "['unknown field'], 'study_number': ['required field']}))"})
+                          'message': "HTTP 400: Bad Request (('Validation of studies failed', "
+                          "{'_aggregator_identifier': ['required field'], 'key': ['unknown "
+                          "field'], 'study_number': ['required field']}))"})
 
-    def test_POST_returns_201_on_success(self):
-        self.mock_studies.insert_one.side_effect = mock_coro(mock.Mock(inserted_id='new_id'))
+    def test_POST_validation_rec_status_fail(self):
+        study_dict = self._valid_study_dict()
+        study_dict['_metadata']['status'] = 'invalid'
         resp_body = self._assert_response_equal(self.fetch('/v0/studies',
                                                            method='POST',
                                                            headers={'Content-Type': 'application/json'},
-                                                           body=json_encode({'study_number': 'value'})), 201)
+                                                           body=json_encode(study_dict)), 400)
+        self.assertEqual(json_decode(resp_body),
+                         {'code': 400,
+                          'message': "HTTP 400: Bad Request (('Validation of studies failed', "
+                          "{'_metadata': [{'status': ['unallowed value invalid']}]}))"})
+
+    def test_POST_validation_schema_version_fail(self):
+        study_dict = self._valid_study_dict()
+        study_dict['_metadata']['schema_version'] = 'invalid'
+        resp_body = self._assert_response_equal(self.fetch('/v0/studies',
+                                                           method='POST',
+                                                           headers={'Content-Type': 'application/json'},
+                                                           body=json_encode(study_dict)), 400)
+        self.assertEqual(json_decode(resp_body),
+                         {'code': 400,
+                          'message': "HTTP 400: Bad Request (('Validation of studies failed', "
+                          "{'_metadata': [{'schema_version': ['unallowed value "
+                          "invalid']}]}))"})
+
+    def test_POST_validation_cmm_type_fail(self):
+        study_dict = self._valid_study_dict()
+        study_dict['_metadata']['cmm_type'] = 'invalid'
+        resp_body = self._assert_response_equal(self.fetch('/v0/studies',
+                                                           method='POST',
+                                                           headers={'Content-Type': 'application/json'},
+                                                           body=json_encode(study_dict)), 400)
+        self.assertEqual(json_decode(resp_body),
+                         {'code': 400,
+                          'message': "HTTP 400: Bad Request (('Validation of studies failed', "
+                          "{'_metadata': [{'cmm_type': ['unallowed value invalid']}]}))"})
+
+    def test_POST_returns_201_on_success(self):
+        self.mock_studies.insert_one.side_effect = mock_coro(mock.Mock(inserted_id='new_id'))
+        study_dict = self._valid_study_dict()
+        resp_body = self._assert_response_equal(self.fetch('/v0/studies',
+                                                           method='POST',
+                                                           headers={'Content-Type': 'application/json'},
+                                                           body=json_encode(study_dict)),
+                                                201)
         self.assertEqual(json_decode(resp_body), {'affected_resource': 'new_id',
                                                   'error': None,
                                                   'result': 'insert_successful'})

@@ -20,12 +20,18 @@ For initial setup run the following against a mongodb replicaset::
 Setup an empty database into an existing replicaset::
 
     python -m cdcagg_docstore.db_admin setup_database setup_collections setup_users
+
+Drop & re-create collections, for example when indexes have been altered::
+
+    python -m cdcagg_docstore.db_admin drop_collections setup_collections
+
 """
 # STD
 import sys
 from collections import namedtuple
 from pprint import pprint
 from getpass import getpass
+from argparse import RawDescriptionHelpFormatter
 # PyPI
 from tornado.ioloop import IOLoop
 from tornado.gen import multi
@@ -42,12 +48,22 @@ OperationsSetup = namedtuple('client', 'admin_credentials, settings, client, app
 
 
 class DBOperations:
+    """DBOperations class used as a singleton to load arguments and
+    setup connections. Use with @cli_operation decorated functions."""
 
     def __init__(self):
+        """Initiate DBOperations class into an object.
+        """
         self.operations = {}
         self.settings = None
 
     def setup(self, admin_username, admin_password, settings):
+        """Setup the object for operations.
+
+        :param str admin_username: MongoDB admin username
+        :param str admin_password: MongoDB admin password
+        :param :obj:`argparse.Namespace` settings: Loaded settings
+        """
         conn_uri = mongodburi(*settings.replica, database='admin',
                               credentials=(admin_username, admin_password),
                               options=[('replicaSet', settings.replicaset)])
@@ -58,6 +74,11 @@ class DBOperations:
                                         admin_db=client['admin'])
 
     def get(self, name):
+        """Return the wrapped operations function.
+
+        :param str name: function name.
+        :returns: function
+        """
         return self.operations[name]
 
 
@@ -65,6 +86,13 @@ _ops = DBOperations()
 
 
 def cli_operation(func):
+    """Decorator for CLI operation functions.
+
+    :param function func: Decorated function
+    :returns: Wrapper callable without arguments. Calls the
+              decorated function and prints out the result.
+
+    """
     op_str = func.__name__
 
     async def wrapper():
@@ -81,6 +109,11 @@ def cli_operation(func):
 
 @cli_operation
 async def initiate_replicaset(ops_setup):
+    """CLI operation to initiate replicaset.
+
+    :param :obj:`OperationsSetup` ops_setup: Setup variables.
+    :returns: Result of 'repsSetInitiate'
+    """
     replset_members = [{'_id': index, 'host': host} for index, host in enumerate(ops_setup.settings.replica)]
     client = MotorClient(mongodburi(ops_setup.settings.replica[0], database='admin',
                                     credentials=ops_setup.admin_credentials))
@@ -91,11 +124,21 @@ async def initiate_replicaset(ops_setup):
 
 @cli_operation
 async def show_replicaset_status(ops_setup):
+    """CLI operations to print out replicaset status.
+
+    :param :obj:`OperationsSetup` ops_setup: Setup variables.
+    :returns: Result of 'repsSetGetStatus'
+    """
     return await ops_setup.admin_db.command('replSetGetStatus')
 
 
 @cli_operation
 async def show_replicaset_config(ops_setup):
+    """CLI operation to print out replicaset configs.
+
+    :param :obj:`OperationsSetup` ops_setup: Setup variables.
+    :returns: Result of 'repsSetGetConfig'
+    """
     return await ops_setup.admin_db.command('replSetGetConfig')
 
 
@@ -103,16 +146,31 @@ async def show_replicaset_config(ops_setup):
 
 @cli_operation
 async def setup_database(ops_setup):
+    """CLI operation to setup the application database.
+
+    :param :obj:`OperationsSetup` ops_setup: Setup variables.
+    :returns: Result of MotorClient.get_database()
+    """
     return ops_setup.client.get_database(name=ops_setup.settings.database_name)
 
 
 @cli_operation
 async def list_databases(ops_setup):
+    """CLI operation to list database names.
+
+    :param :obj:`OperationsSetup` ops_setup: Setup variables.
+    :returns: Result of MotorClient.list_database_names()
+    """
     return await ops_setup.client.list_database_names()
 
 
 @cli_operation
 async def drop_database(ops_setup):
+    """CLI operation to drop (remove) database.
+
+    :param :obj:`OperationsSetup` ops_setup: Setup variables.
+    :returns: Result of MotorClient.drop_database()
+    """
     await ops_setup.client.drop_database(ops_setup.settings.database_name)
 
 
@@ -120,6 +178,15 @@ async def drop_database(ops_setup):
 
 @cli_operation
 async def setup_collections(ops_setup):
+    """CLI operation to setup database collections.
+
+    Creates every collection and sets up it's indexes and validation.
+
+    :param :obj:`OperationsSetup` ops_setup: Setup variables.
+    :returns: Operations results in dict, where each key is a name of
+              a collection, value is a list of task results:
+              {<coll_name>: [<task_result_1>, <task_result_2>]}
+    """
     result = {}
     for collection in iter_collections():
         tasks = []
@@ -135,11 +202,22 @@ async def setup_collections(ops_setup):
 
 @cli_operation
 async def list_collections(ops_setup):
+    """CLI operation to list collection names.
+
+    :param :obj:`OperationsSetup` ops_setup: Setup variables.
+    :returns: Result of MotorClient[<db_name>].list_collection_names()
+    """
     return await ops_setup.app_db.list_collection_names()
 
 
 @cli_operation
 async def list_collection_indexes(ops_setup):
+    """CLI operation to list collection indexes.
+
+    :param :obj:`OperationsSetup` ops_setup: Setup variables.
+    :returns: Operation results in dict format, where each key is a
+              collection name and it's value is a list of indexes.
+    """
     result = {}
     for collname in await ops_setup.app_db.list_collection_names():
         indexes = []
@@ -151,6 +229,11 @@ async def list_collection_indexes(ops_setup):
 
 @cli_operation
 async def drop_collections(ops_setup):
+    """CLI operation to drop (remove) collections.
+
+    :param :obj:`OperationsSetup` ops_setup: Setup variables.
+    :returns: Operation results.
+    """
     tasks = []
     for collection in iter_collections():
         tasks.append(ops_setup.app_db.drop_collection(collection.name))
@@ -161,11 +244,21 @@ async def drop_collections(ops_setup):
 
 @cli_operation
 async def list_admin_users(ops_setup):
+    """CLI operation to list admin users.
+
+    :param :obj:`OperationsSetup` ops_setup: Setup variables.
+    :returns: Result of command 'usersInfo' against the admin-database.
+    """
     return await ops_setup.admin_db.command('usersInfo')
 
 
 @cli_operation
 async def setup_users(ops_setup):
+    """CLI operation to setup application db users.
+
+    :param :obj:`OperationsSetup` ops_setup: Setup variables.
+    :returns: Results of commands 'createUser' against the application-database.
+    """
     tasks = [ops_setup.app_db.command('createUser', ops_setup.settings.database_user_reader,
                                       pwd=ops_setup.settings.database_pass_reader,
                                       roles=['read']),
@@ -177,20 +270,37 @@ async def setup_users(ops_setup):
 
 @cli_operation
 async def list_users(ops_setup):
+    """CLI operation to list application database users.
+
+    :param :obj:`OperationsSetup` ops_setup: Setup variables.
+    :returns: Results of commands 'usersInfo' against the application-database.
+    """
     return await ops_setup.app_db.command('usersInfo')
 
 
 @cli_operation
 async def remove_users(ops_setup):
+    """CLI operation to remove application database users.
+
+    :param :obj:`OperationsSetup` ops_setup: Setup variables.
+    :returns: Results of commands 'dropUser' against the
+              application-database with reader and editor credentials.
+    """
     tasks = [ops_setup.app_db.command('dropUser', ops_setup.settings.database_user_reader),
              ops_setup.app_db.command('dropUser', ops_setup.settings.database_user_editor)]
     return await multi(tasks)
 
 
 def configure():
+    """Define and load configuration.
+
+    :returns: Loaded configuration
+    :rtype: :obj:`argparse.Namespace`
+    """
     conf.load(prog='cdcagg_docstore.db_admin',
               env_var_prefix='CDCAGG_',
-              description=__doc__)
+              description=__doc__,
+              formatter_class=RawDescriptionHelpFormatter)
     conf.add_print_arg()
     conf.add_config_arg()
     add_cli_args(conf)
@@ -206,6 +316,13 @@ def configure():
 
 
 def main():
+    """Starts db_admin script from command line.
+
+    Define configuration arguments & load them. Run every operation in
+    IOLoop.
+
+    :returns: 0 on success
+    """
     settings = configure()
     if settings.print_configuration:
         print('Print active configuration and exit\n')

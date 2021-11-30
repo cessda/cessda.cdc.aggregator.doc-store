@@ -29,6 +29,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 - Require latest commit of Kuha Document Store master
   [Implements #14](https://bitbucket.org/cessda/cessda.cdc.aggregator.doc-store/issues/14)
 
+### Added
+
+- Validation and indexing of Study record's `_aggregator_identifier` field to MongoDB.
+  [Fixes #13](https://bitbucket.org/cessda/cessda.cdc.aggregator.doc-store/issues/13)
+
 
 ## 0.1.0 - 2021-09-21
 

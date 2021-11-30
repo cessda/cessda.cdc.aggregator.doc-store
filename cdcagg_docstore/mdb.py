@@ -15,8 +15,8 @@
 from collections import namedtuple
 from motor.motor_tornado import MotorClient
 from pymongo import (
-    DESCENDING,
-    ASCENDING
+    ASCENDING,
+    DESCENDING
 )
 from cdcagg_common import (
     records,
@@ -93,5 +93,6 @@ def studies_collection():
     validators = _collection_validator(records.Study.get_collection(),
                                        records.Study,
                                        required=[records.Study.study_number.path])
-    indexes_unique = [[(records.Study.study_number.path, DESCENDING)]]
+    indexes_unique = [[(records.Study.study_number.path, ASCENDING)],
+                      [(records.Study._aggregator_identifier.path, ASCENDING)]]
     return _init_collection(records.Study.get_collection(), validators, indexes_unique)
