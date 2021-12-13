@@ -28,6 +28,16 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
   [Implements #14](https://bitbucket.org/cessda/cessda.cdc.aggregator.doc-store/issues/14)
 - Require latest commit of Kuha Document Store master
   [Implements #14](https://bitbucket.org/cessda/cessda.cdc.aggregator.doc-store/issues/14)
+- Update dependencies in requirements.txt.
+
+  - ConfigArgParse 1.5.3
+  - python-dateutil 2.8.2
+  - Motor 2.5.1
+  - PyMongo 3.12.0
+  - Cerberus 1.3.4
+  - Kuha Common to Git commit 8e7de1f16530decc356fee660255b60fcacaea23
+  - Kuha Document Store to Git commit 31b277685fd7568032d037db4334cb15da2a28da
+  - TODO CDC Aggregator Shared Library 0.2.0
 
 ### Added
 
