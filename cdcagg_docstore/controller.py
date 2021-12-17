@@ -32,7 +32,7 @@ class CDCAggDatabase(DocumentStoreDatabase):
     """CDC Aggregator Database class.
 
     Subclass of DocumentStoreDatabase. Overrides methods
-    _get_record_by_collection_name() and _prepare_validation_schema()
+    :meth:`_get_record_by_collection_name()` and :meth:`_prepare_validation_schema()`
     to support different records that parent class.
     """
 
@@ -78,7 +78,8 @@ class CDCAggDatabase(DocumentStoreDatabase):
 def db_from_settings(settings):
     """Instantiate CDCAggDatabase from loaded settings
 
-    :param :obj:`argparse.Namespace` settings: loaded settings
+    :param settings: loaded settings
+    :type settings: :obj:`argparse.Namespace`
     :returns: Instance of CDCAggDatabase
     :rtype: :obj:`CDCAggDatabase`
     """
@@ -96,7 +97,8 @@ def db_from_settings(settings):
 def add_cli_args(parser):
     """Adds CLI arguments to argument parser.
 
-    :param :obj:`configargparse.ArgumentParser` parser: Argument parser
+    :param parser: Argument parser
+    :type parser: :obj:`configargparse.ArgumentParser`
     """
     parser.add('--replica',
                help='MongoDB replica replica host + port. Repeat for multiple replicas. For example: localhost:27017',

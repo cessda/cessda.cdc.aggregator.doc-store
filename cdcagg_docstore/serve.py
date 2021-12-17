@@ -10,7 +10,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Entrypoint to start serving the DocStore.
 
+Handle command line arguments, application setup, server startup and
+critical exception logging.
+"""
 import logging
 from py12flogging.log_formatter import (
     setup_app_logging,
@@ -29,6 +33,14 @@ _logger = logging.getLogger(__name__)
 
 
 def configure():
+    """Configure application.
+
+    Define configuration options. Load arguments.
+    Setup logging and return loaded settings.
+
+    :returns: Loaded settings.
+    :rtype: :obj:`argparse.Namespace`
+    """
     conf.load(prog='cdcagg_docstore', package='cdcagg_docstore', env_var_prefix='CDCAGG_')
     conf.add_print_arg()
     conf.add_config_arg()
@@ -48,6 +60,16 @@ def configure():
 
 
 def main():
+    """Starts the server.
+
+    Load settings, initiate controller,
+    setup and serve application.
+
+    Use as a command line entrypoint.
+
+    :returns: 0 on success
+    :rtype: int
+    """
     settings = configure()
     if settings.print_configuration:
         print('Print active configuration and exit\n')
@@ -58,14 +80,14 @@ def main():
         app = get_app(settings.api_version,
                       list_collection_names(),
                       db=db)
-    except:
+    except Exception:
         _logger.exception('Exception in application setup')
         raise
     try:
         server.serve(app, settings.port, on_exit=db.close)
     except KeyboardInterrupt:
         _logger.warning('Shutdown by CTRL + C', exc_info=True)
-    except:
+    except Exception:
         _logger.exception('Unhandled exception in main()')
         raise
     finally:

@@ -10,6 +10,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Defines the HTTP API for DocStore
+"""
 
 from kuha_common.server import WebApplication
 from kuha_document_store.handlers import (
@@ -19,6 +21,22 @@ from kuha_document_store.handlers import (
 
 
 def get_app(api_version, collections, **kw):
+    """Format and return WebApplication
+
+    Api version and collections are used to build routes to
+    handlers. The handlers and optional keyword arguments are
+    passed onto the WebApplication class.
+
+    WebApplication is a subclass of :class:`tornado.web.Application`.
+
+    :param str api_version: DocStore API version. Gets prepended to
+                            all routes.
+    :param list collections: Available collections. Every collection
+                             gets its own route to REST and QUERY
+                             handlers.
+    :returns: WebApplication object.
+    :rtype: :obj:`kuha_common.server.WebApplication`
+    """
     handlers = []
 
     def add_route(route_str, handler, **kw_):

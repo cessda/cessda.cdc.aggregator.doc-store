@@ -13,7 +13,6 @@
 
 """MongoDB properties"""
 from collections import namedtuple
-from motor.motor_tornado import MotorClient
 from pymongo import (
     ASCENDING,
     DESCENDING
@@ -31,10 +30,6 @@ _COMMON_ISODATE_FIELDS = [
 ]
 _COMMON_INDEXES = [[(records.RecordBase._metadata.attr_updated.path, DESCENDING)]]
 _COMMON_OBJECTID_FIELDS = [records.RecordBase._id.path]
-
-
-def get_client(conn_uri):
-    return MotorClient(conn_uri)
 
 
 def _collection_validator(collection_name, record_class, required=None):
@@ -79,8 +74,18 @@ def _collection_validator(collection_name, record_class, required=None):
     }
 
 
-Collection = namedtuple('Collection', ['name', 'validators', 'indexes_unique',
-                                       'indexes', 'isodate_fields', 'object_id_fields'])
+Collection = namedtuple('Collection',
+                        'name, validators, indexes_unique, '
+                        'indexes, isodate_fields, object_id_fields')
+"""Collection object contains properties of a MongoDB collection.
+
+:param str name: Collection name.
+:param dict validators: MongoDB validators for collection.
+:param list indexes_unique: List of unique MongoDB indexes for collection.
+:param list indexes: List of MongoDB indexes for collection.
+:param list isodate_fields: List of isodate fields for collection.
+:param list object_id_fields: List of collection's object ID fields.
+"""
 
 
 def _init_collection(name, validators, indexes_unique):
@@ -90,6 +95,11 @@ def _init_collection(name, validators, indexes_unique):
 
 
 def studies_collection():
+    """Initiate and return studies collection.
+
+    :returns: Studies collection object.
+    :rtype: :obj:`Collection`
+    """
     validators = _collection_validator(records.Study.get_collection(),
                                        records.Study,
                                        required=[records.Study.study_number.path])

@@ -44,7 +44,22 @@ from . import iter_collections
 from .controller import add_cli_args
 
 
-OperationsSetup = namedtuple('client', 'admin_credentials, settings, client, app_db, admin_db')
+OperationsSetup = namedtuple('OperationsSetup', 'admin_credentials, settings, client, app_db, admin_db')
+"""Operations setup variables.
+
+These are used for setup and operations
+performed in this module
+
+:param tuple admin_credentials: DB Admin credentials.
+:param settings: Loaded settings
+:type settings: :obj:`argparse.Namespace`
+:param client: MotorClient instance with valid connection uri.
+:type client: :obj:`motor.motor_tornado.MotorClient`
+:param app_db: Application database connection.
+:type app_db: :obj:`motor.motor_tornado.MotorDatabase`
+:param admin_db: Admin database connection.
+:type admin_db: :obj:`motor.motor_tornado.MotorDatabase`
+"""
 
 
 class DBOperations:
@@ -62,7 +77,8 @@ class DBOperations:
 
         :param str admin_username: MongoDB admin username
         :param str admin_password: MongoDB admin password
-        :param :obj:`argparse.Namespace` settings: Loaded settings
+        :param settings: Loaded settings
+        :type settings: :obj:`argparse.Namespace`
         """
         conn_uri = mongodburi(*settings.replica, database='admin',
                               credentials=(admin_username, admin_password),
@@ -101,6 +117,10 @@ def cli_operation(func):
         print('%s result:' % (op_str,))
         pprint(result)
         return result
+    # For sphinx autodoc:
+    # Assign the docstring of the wrapped function
+    # to docstring of the wrapper.
+    wrapper.__doc__ = func.__doc__
     _ops.operations[op_str] = wrapper
     return wrapper
 
@@ -111,7 +131,8 @@ def cli_operation(func):
 async def initiate_replicaset(ops_setup):
     """CLI operation to initiate replicaset.
 
-    :param :obj:`OperationsSetup` ops_setup: Setup variables.
+    :param ops_setup: Setup variables.
+    :type ops_setup: :obj:`OperationsSetup`
     :returns: Result of 'repsSetInitiate'
     """
     replset_members = [{'_id': index, 'host': host} for index, host in enumerate(ops_setup.settings.replica)]
@@ -126,7 +147,8 @@ async def initiate_replicaset(ops_setup):
 async def show_replicaset_status(ops_setup):
     """CLI operations to print out replicaset status.
 
-    :param :obj:`OperationsSetup` ops_setup: Setup variables.
+    :param ops_setup: Setup variables.
+    :type: :obj:`OperationsSetup`
     :returns: Result of 'repsSetGetStatus'
     """
     return await ops_setup.admin_db.command('replSetGetStatus')
@@ -136,7 +158,8 @@ async def show_replicaset_status(ops_setup):
 async def show_replicaset_config(ops_setup):
     """CLI operation to print out replicaset configs.
 
-    :param :obj:`OperationsSetup` ops_setup: Setup variables.
+    :param ops_setup: Setup variables.
+    :type ops_setup: :obj:`OperationsSetup`
     :returns: Result of 'repsSetGetConfig'
     """
     return await ops_setup.admin_db.command('replSetGetConfig')
@@ -148,7 +171,8 @@ async def show_replicaset_config(ops_setup):
 async def setup_database(ops_setup):
     """CLI operation to setup the application database.
 
-    :param :obj:`OperationsSetup` ops_setup: Setup variables.
+    :param ops_setup: Setup variables.
+    :type ops_setup: :obj:`OperationsSetup`
     :returns: Result of MotorClient.get_database()
     """
     return ops_setup.client.get_database(name=ops_setup.settings.database_name)
@@ -158,7 +182,8 @@ async def setup_database(ops_setup):
 async def list_databases(ops_setup):
     """CLI operation to list database names.
 
-    :param :obj:`OperationsSetup` ops_setup: Setup variables.
+    :param ops_setup: Setup variables.
+    :type ops_setup: :obj:`OperationsSetup`
     :returns: Result of MotorClient.list_database_names()
     """
     return await ops_setup.client.list_database_names()
@@ -168,7 +193,8 @@ async def list_databases(ops_setup):
 async def drop_database(ops_setup):
     """CLI operation to drop (remove) database.
 
-    :param :obj:`OperationsSetup` ops_setup: Setup variables.
+    :param ops_setup: Setup variables.
+    :type ops_setup: :obj:`OperationsSetup`
     :returns: Result of MotorClient.drop_database()
     """
     await ops_setup.client.drop_database(ops_setup.settings.database_name)
@@ -182,7 +208,8 @@ async def setup_collections(ops_setup):
 
     Creates every collection and sets up it's indexes and validation.
 
-    :param :obj:`OperationsSetup` ops_setup: Setup variables.
+    :param ops_setup: Setup variables.
+    :type ops_setup: :obj:`OperationsSetup`
     :returns: Operations results in dict, where each key is a name of
               a collection, value is a list of task results:
               {<coll_name>: [<task_result_1>, <task_result_2>]}
@@ -204,7 +231,8 @@ async def setup_collections(ops_setup):
 async def list_collections(ops_setup):
     """CLI operation to list collection names.
 
-    :param :obj:`OperationsSetup` ops_setup: Setup variables.
+    :param ops_setup: Setup variables.
+    :type ops_setup: :obj:`OperationsSetup`
     :returns: Result of MotorClient[<db_name>].list_collection_names()
     """
     return await ops_setup.app_db.list_collection_names()
@@ -214,7 +242,8 @@ async def list_collections(ops_setup):
 async def list_collection_indexes(ops_setup):
     """CLI operation to list collection indexes.
 
-    :param :obj:`OperationsSetup` ops_setup: Setup variables.
+    :param ops_setup: Setup variables.
+    :type ops_setup: :obj:`OperationsSetup`
     :returns: Operation results in dict format, where each key is a
               collection name and it's value is a list of indexes.
     """
@@ -231,7 +260,8 @@ async def list_collection_indexes(ops_setup):
 async def drop_collections(ops_setup):
     """CLI operation to drop (remove) collections.
 
-    :param :obj:`OperationsSetup` ops_setup: Setup variables.
+    :param ops_setup: Setup variables.
+    :type ops_setup: :obj:`OperationsSetup`
     :returns: Operation results.
     """
     tasks = []
@@ -246,7 +276,8 @@ async def drop_collections(ops_setup):
 async def list_admin_users(ops_setup):
     """CLI operation to list admin users.
 
-    :param :obj:`OperationsSetup` ops_setup: Setup variables.
+    :param ops_setup: Setup variables.
+    :type ops_setup: :obj:`OperationsSetup`
     :returns: Result of command 'usersInfo' against the admin-database.
     """
     return await ops_setup.admin_db.command('usersInfo')
@@ -256,7 +287,8 @@ async def list_admin_users(ops_setup):
 async def setup_users(ops_setup):
     """CLI operation to setup application db users.
 
-    :param :obj:`OperationsSetup` ops_setup: Setup variables.
+    :param ops_setup: Setup variables.
+    :type ops_setup: :obj:`OperationsSetup`
     :returns: Results of commands 'createUser' against the application-database.
     """
     tasks = [ops_setup.app_db.command('createUser', ops_setup.settings.database_user_reader,
@@ -272,7 +304,8 @@ async def setup_users(ops_setup):
 async def list_users(ops_setup):
     """CLI operation to list application database users.
 
-    :param :obj:`OperationsSetup` ops_setup: Setup variables.
+    :param ops_setup: Setup variables.
+    :type ops_setup: :obj:`OperationsSetup`
     :returns: Results of commands 'usersInfo' against the application-database.
     """
     return await ops_setup.app_db.command('usersInfo')
@@ -282,7 +315,8 @@ async def list_users(ops_setup):
 async def remove_users(ops_setup):
     """CLI operation to remove application database users.
 
-    :param :obj:`OperationsSetup` ops_setup: Setup variables.
+    :param ops_setup: Setup variables.
+    :type ops_setup: :obj:`OperationsSetup`
     :returns: Results of commands 'dropUser' against the
               application-database with reader and editor credentials.
     """
