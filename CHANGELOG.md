@@ -4,7 +4,8 @@ All notable changes to the CDC Aggregator DocStore will be documented in this fi
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## 0.2.0 - Unreleased
+## 0.2.0 - 2021-12-17
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.5779898.svg)](https://doi.org/10.5281/zenodo.5779898)
 
 ### Changed
 
@@ -22,7 +23,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
   - Cerberus 1.3.4
   - Kuha Common to Git commit 8e7de1f16530decc356fee660255b60fcacaea23
   - Kuha Document Store to Git commit 31b277685fd7568032d037db4334cb15da2a28da
-  - TODO CDC Aggregator Shared Library 0.2.0
+  - CDC Aggregator Shared Library 0.2.0
 
 ### Added
 
