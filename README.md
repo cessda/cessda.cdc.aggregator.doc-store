@@ -34,7 +34,7 @@ DocStore feature list:
 
 ## Requirements ##
 
-  - Python 3.6 or newer.
+  - Python 3.8 or newer.
   - MongoDB 3.6 or newer.
 
 ## Installation ##
