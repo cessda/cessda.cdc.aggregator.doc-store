@@ -151,7 +151,7 @@ node(node_label) {
         }
     }
     tasks_3['Run Tests py310'] = {
-        docker.image('python:3.10').inside({
+        docker.image('python:3.10').inside('-u root') {
             stage('Prepare Tox Venv') {
                 if (!fileExists(toxEnvName)) {
                     echo 'Build Python Virtualenv for testing...'
@@ -176,7 +176,7 @@ node(node_label) {
                     sh "rm -r ${toxEnvName}"
                 }
             }
-        })
+        }
     }
     try {
         // run parallel tasks
