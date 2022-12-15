@@ -52,7 +52,7 @@ node(node_label) {
 
     // Assign parallel tasks
     tasks_1['Prepare Tox, Run With Coverage & Publish Report'] = {
-        docker.image('python:3.9').inside({
+        docker.image('python:3.9').inside('-u root') {
             stage('Prepare Tox Venv') {
                 if (!fileExists(toxEnvName)) {
                     echo 'Build Python Virtualenv for testing...'
@@ -81,10 +81,10 @@ node(node_label) {
                     sh "rm -r ${toxEnvName}"
                 }
             }
-        })
+        }
     }
     tasks_1['Prepare Pylint, Run Analysis, Archive & Publish report'] = {
-        docker.image('python:3.9').inside({
+        docker.image('python:3.9').inside('-u root') {
             stage('Prepare Pylint Venv') {
                 if (!fileExists(pylintEnvName)) {
                     withCredentials([usernameColonPassword(credentialsId: 'cdc4d5cd-f858-4d77-86d4-ecbdb8b8f267', variable: 'BBCREDS')]) {
@@ -112,10 +112,10 @@ node(node_label) {
             stage('Publish PyLint Report') {
                 recordIssues tool: pyLint(pattern: pylint_report_path)
             }            
-        })
+        }
     }
     tasks_2['Run Tests py38'] = {
-        docker.image('python:3.8').inside({
+        docker.image('python:3.8').inside('-u root') {
             stage('Prepare Tox Venv') {
                 if (!fileExists(toxEnvName)) {
                     echo 'Build Python Virtualenv for testing...'
@@ -140,7 +140,7 @@ node(node_label) {
                     sh "rm -r ${toxEnvName}"
                 }
             }
-        })
+        }
     }
     tasks_2['Publish Reports & Initiate SonarQube Analysis'] = {
         stage('Prepare sonar-project.properties') {
