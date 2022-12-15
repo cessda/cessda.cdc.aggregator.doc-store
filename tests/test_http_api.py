@@ -120,6 +120,8 @@ class TestRESTApi(TestCaseBase):
     def _valid_study_dict():
         study = Study()
         study.add_study_number('some_study_number')
+        study.set_aggregator_identifier(
+            '6eb05b9342cc92e9a09de18df0a34318b9913c69e3d78b0222fb2f7cdf0ba9a3')
         return study.export_dict()
 
     def test_GET_studies(self):
