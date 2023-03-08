@@ -61,7 +61,7 @@
 #     -e "CDCAGG_DBREPLICAS=[153.1.61.74:27017, 153.1.61.74:27018, 153.1.61.74:27019]" \
 #     cdcagg-docstore
 
-FROM python:3.9-slim as builder
+FROM python:3.11-slim as builder
 
 COPY . /docker-build
 WORKDIR /docker-build
@@ -81,7 +81,7 @@ RUN --mount=type=secret,id=bbcreds \
 # END FIRST STAGE
 
 
-FROM python:3.9-slim as prod
+FROM python:3.11-slim as prod
 
 # Copy build packages from builder image to prod.
 # Add them to PATH.
