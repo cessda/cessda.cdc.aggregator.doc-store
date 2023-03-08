@@ -34,7 +34,7 @@ requires = [
 
 setup(name='cdcagg_docstore',
       version=version,
-      url='https://bitbucket.org/cessda/cessda.cdc.aggregator.doc-store',
+      url='https://github.com/cessda/cessda.cdc.aggregator.doc-store',
       description='',
       license='EUPL v1.2',
       author='Toni Sissala',

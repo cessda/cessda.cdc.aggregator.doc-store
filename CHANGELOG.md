@@ -10,7 +10,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 
 - Support grant & funding information and identifiers for related
   publications in `studies` collection. (Implements
-  [#20](https://bitbucket.org/cessda/cessda.cdc.aggregator.doc-store/issues/20))
+  [#20](https://github.com/cessda/cessda.cdc.aggregator.doc-store/issues/20))
 
 ### Changed
 
@@ -30,9 +30,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 
 - Implement `CDCAggDatabase._prepare_validation_schema()`, which
   returns the validation schema for Study record.
-  (Implements [#14](https://bitbucket.org/cessda/cessda.cdc.aggregator.doc-store/issues/14))
+  (Implements [#14](https://github.com/cessda/cessda.cdc.aggregator.doc-store/issues/14))
 - Require latest commit of Kuha Document Store master
-  (Implements [#14](https://bitbucket.org/cessda/cessda.cdc.aggregator.doc-store/issues/14))
+  (Implements [#14](https://github.com/cessda/cessda.cdc.aggregator.doc-store/issues/14))
 - Update dependencies in requirements.txt.
 
   - ConfigArgParse 1.5.3
@@ -47,7 +47,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 ### Added
 
 - Validation and indexing of Study record's `_aggregator_identifier` field to MongoDB.
-  (Fixes [#13](https://bitbucket.org/cessda/cessda.cdc.aggregator.doc-store/issues/13))
+  (Fixes [#13](https://github.com/cessda/cessda.cdc.aggregator.doc-store/issues/13))
 
 
 ## 0.1.0 - 2021-09-21

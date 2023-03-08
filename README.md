@@ -16,7 +16,7 @@
 HTTP server providing an API in front of a MongoDB cluster. This
 program is part of CESSDA Metadata Aggregator.
 
-Source code is hosted at Bitbucket [https://bitbucket.org/cessda/cessda.cdc.aggregator.doc-store](https://bitbucket.org/cessda/cessda.cdc.aggregator.doc-store).
+Source code is hosted at Bitbucket <https://github.com/cessda/cessda.cdc.aggregator.doc-store>
 
 ## Features ##
 
@@ -220,13 +220,13 @@ three mongodb replicas.
 Clone the repository using Git.
 
 ```sh
-git clone https://bitbucket.org/cessda/cessda.cdc.aggregator.doc-store.git
+git clone https://github.com/cessda/cessda.cdc.aggregator.doc-store.git
 ```
 
 Or fetch a specific release using a tag. For example to get 0.2.0 release.
 
 ```sh
-git clone --branch 0.2.0 https://bitbucket.org/cessda/cessda.cdc.aggregator.doc-store.git
+git clone --branch 0.2.0 https://github.com/cessda/cessda.cdc.aggregator.doc-store.git
 ```
 
 
