@@ -120,6 +120,7 @@ class TestRESTApi(TestCaseBase):
     def _valid_study_dict():
         study = Study()
         study.add_study_number('some_study_number')
+        study.set_direct_base_url('some.url')
         study.set_aggregator_identifier(
             '6eb05b9342cc92e9a09de18df0a34318b9913c69e3d78b0222fb2f7cdf0ba9a3')
         return study.export_dict()
@@ -138,8 +139,10 @@ class TestRESTApi(TestCaseBase):
         self.assertEqual(json_decode(resp_body),
                          {'code': 400,
                           'message': "HTTP 400: Bad Request (('Validation of studies failed', "
-                          "{'_aggregator_identifier': ['required field'], 'key': ['unknown "
-                          "field'], 'study_number': ['required field']}))"})
+                          "{'_aggregator_identifier': ['required field'], "
+                          "'_direct_base_url': ['required field'], "
+                          "'key': ['unknown field'], "
+                          "'study_number': ['required field']}))"})
 
     def test_POST_validation_rec_status_fail(self):
         study_dict = self._valid_study_dict()
@@ -177,6 +180,19 @@ class TestRESTApi(TestCaseBase):
                          {'code': 400,
                           'message': "HTTP 400: Bad Request (('Validation of studies failed', "
                           "{'_metadata': [{'cmm_type': ['unallowed value invalid']}]}))"})
+
+    def test_POST_validation_direct_base_url_fail(self):
+        study_dict = self._valid_study_dict()
+        study_dict['_direct_base_url'] = None
+        resp_body = self._assert_response_equal(self.fetch('/v0/studies',
+                                                           method='POST',
+                                                           headers={'Content-Type': 'application/json'},
+                                                           body=json_encode(study_dict)), 400)
+        body_dict = json_decode(resp_body)
+        self.assertEqual(body_dict['code'], 400)
+        self.assertEqual(body_dict['message'],
+                         "HTTP 400: Bad Request (('Validation of studies failed', "
+                         "{'_direct_base_url': ['null value not allowed']}))")
 
     def test_POST_returns_201_on_success(self):
         self.mock_studies.insert_one.side_effect = mock_coro(mock.Mock(inserted_id='new_id'))
