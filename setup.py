@@ -28,7 +28,7 @@ requires = [
     'cerberus',
     'kuha_common>=2.0.0',
     'kuha_document_store>=1.1.0',
-    'cdcagg_common>=0.5.0'
+    'cdcagg_common>=0.6.0'
 ]
 
 
