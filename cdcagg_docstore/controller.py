@@ -65,7 +65,8 @@ class CDCAggDatabase(DocumentStoreDatabase):
         base_schema = {
             **validation.identifier_schema_item(rec_class._aggregator_identifier.path),
             **validation.dict_schema_item(rec_class._metadata.path, metadata_schema_items),
-            **validation.container_schema_item(rec_class._provenance.path, provenance_schema_items)}
+            **validation.container_schema_item(rec_class._provenance.path, provenance_schema_items),
+            **validation.default_schema_item(rec_class._direct_base_url.path, nullable=False, required=True)}
         return validation.RecordValidationSchema(
             rec_class,
             base_schema,

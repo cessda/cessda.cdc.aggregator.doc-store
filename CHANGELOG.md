@@ -4,6 +4,15 @@ All notable changes to the CDC Aggregator DocStore will be documented in this fi
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+
+## 0.4.0 - 2023-11-24
+
+### Added
+
+- Support `study._direct_base_url` (Implements
+  [#27](https://github.com/cessda/cessda.cdc.aggregator.doc-store/issues/27))
+
+
 ## 0.3.0 - 2022-11-21
 
 ### Added
