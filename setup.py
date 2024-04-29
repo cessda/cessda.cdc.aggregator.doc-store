@@ -26,9 +26,9 @@ requires = [
     'motor',
     'pymongo',
     'cerberus',
-    'kuha_common>=2.0.0',
-    'kuha_document_store>=1.1.0',
-    'cdcagg_common>=0.6.0'
+    'kuha_common>=2.4.0',
+    'kuha_document_store>=1.3.0',
+    'cdcagg_common>=0.7.0'
 ]
 
 

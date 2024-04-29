@@ -16,7 +16,7 @@
 HTTP server providing an API in front of a MongoDB cluster. This
 program is part of CESSDA Metadata Aggregator.
 
-Source code is hosted at Bitbucket <https://github.com/cessda/cessda.cdc.aggregator.doc-store>
+Source code is hosted at Github <https://github.com/cessda/cessda.cdc.aggregator.doc-store>
 
 ## Features ##
 

@@ -5,6 +5,22 @@ All notable changes to the CDC Aggregator DocStore will be documented in this fi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
+## 0.5.0 - 2024-04-29
+
+### Added
+
+- Support `external_link`, `external_link_role`, `external_link_uri`
+  and `external_link_title` attributes in Study.principal_investigator.
+
+### Changed
+
+- Update dependencies:
+
+  - Require CDC Aggregator Shared Library 0.7.0 in setup.py and
+    requirements.txt.
+  - Require Kuha Common 2.4.0 or newer in setup.py and 2.4.0 in requirements.txt.
+  - Require Kuha Document Store 1.3.0 in setup.py and requirements.txt.
+
 ## 0.4.0 - 2023-11-24
 
 ### Added
