@@ -5,7 +5,7 @@ All notable changes to the CDC Aggregator DocStore will be documented in this fi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
-## 0.5.0 - 2024-04-29
+## 0.5.0 - 2024-04-30
 
 ### Added
 
@@ -17,9 +17,15 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) a
 - Update dependencies:
 
   - Require CDC Aggregator Shared Library 0.7.0 in setup.py and
-    requirements.txt.
-  - Require Kuha Common 2.4.0 or newer in setup.py and 2.4.0 in requirements.txt.
-  - Require Kuha Document Store 1.3.0 in setup.py and requirements.txt.
+    requirements.txt. (Implements
+    [#31](https://github.com/cessda/cessda.cdc.aggregator.doc-store/issues/31))
+  - Require Kuha Common 2.4.0 or newer in setup.py and 2.4.0 in
+    requirements.txt. (Implements
+    [#31](https://github.com/cessda/cessda.cdc.aggregator.doc-store/issues/31))
+  - Require Kuha Document Store 1.3.0 in setup.py and
+    requirements.txt. (Implements
+    [#31](https://github.com/cessda/cessda.cdc.aggregator.doc-store/issues/31))
+
 
 ## 0.4.0 - 2023-11-24
 
