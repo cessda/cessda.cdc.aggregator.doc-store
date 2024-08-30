@@ -5,6 +5,35 @@ All notable changes to the CDC Aggregator DocStore will be documented in this fi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
+## 0.6.0 - 2024-08-30
+
+### Added
+
+- Support Python 3.11 & Python 3.12.
+- New test environment for tox 'warnings-as-errors' to treat warnings
+  as errors in tests. Run this environment in CI with latest python.
+
+### Changed
+
+- Update dependencies in requirements.txt to support Python 3.12:
+
+  - Motor 3.5.1
+  - PyMongo 4.8.0
+  - Python-dateutil 2.9.0
+  - Cerberus 1.3.5
+  - Py12fLogging 0.7.0
+  - Tornado 6.4.1
+  - Kuha Common 2.5.0
+  - Kuha Document Store 1.4.0
+  - Aggregator Shared Library 0.8.1
+
+- Add new dependency dnspython 2.6.1, which is an indirect dependency
+  from PyMongo.
+- Update dependencies to latest versions in requirements.txt:
+
+  - ConfigArgParse 1.7
+
+
 ## 0.5.0 - 2024-04-30
 
 ### Added

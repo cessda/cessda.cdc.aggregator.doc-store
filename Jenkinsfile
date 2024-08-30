@@ -35,6 +35,8 @@ node(node_label) {
     def tasks_1 = [:]
     def tasks_2 = [:]
     def tasks_3 = [:]
+    def tasks_4 = [:]
+    def tasks_5 = [:]
 
     myworkspace = "${WORKSPACE}"
     echo "My workspace is ${myworkspace}"
@@ -161,6 +163,58 @@ node(node_label) {
                 sh """
                 . ./${toxEnvName}/bin/activate
                 tox -e py310
+                """
+            }
+            stage('Clean up tox-env') {
+                if (fileExists(toxEnvName)) {
+                    sh "rm -r ${toxEnvName}"
+                }
+            }
+        }
+    }
+    tasks_4['Run Tests py311'] = {
+        docker.image('python:3.11').inside('-u root') {
+            stage('Prepare Tox Venv') {
+                if (!fileExists(toxEnvName)) {
+                    echo 'Build Python Virtualenv for testing...'
+                    sh """
+                    python -m venv ${toxEnvName}
+                    . ./${toxEnvName}/bin/activate
+                    pip install --upgrade pip
+                    pip install tox
+                    """
+                }
+            }
+            stage('Run Tests') {
+                sh """
+                . ./${toxEnvName}/bin/activate
+                tox -e py311
+                """
+            }
+            stage('Clean up tox-env') {
+                if (fileExists(toxEnvName)) {
+                    sh "rm -r ${toxEnvName}"
+                }
+            }
+        }
+    }
+    tasks_5['Run Tests py312'] = {
+        docker.image('python:3.12').inside('-u root') {
+            stage('Prepare Tox Venv') {
+                if (!fileExists(toxEnvName)) {
+                    echo 'Build Python Virtualenv for testing...'
+                    sh """
+                    python -m venv ${toxEnvName}
+                    . ./${toxEnvName}/bin/activate
+                    pip install --upgrade pip
+                    pip install tox
+                    """
+                }
+            }
+            stage('Run Tests') {
+                sh """
+                . ./${toxEnvName}/bin/activate
+                tox -e warnings-as-errors
                 """
             }
             stage('Clean up tox-env') {
