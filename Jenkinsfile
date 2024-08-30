@@ -229,6 +229,8 @@ node(node_label) {
         parallel tasks_1
         parallel tasks_2
         parallel tasks_3
+        parallel tasks_4
+        parallel tasks_5
         stage('Build docker image') {
             withEnv(['DOCKER_BUILDKIT=1']) {
                 sh "docker build -t ${image_tag} --secret id=bbcreds,env=BBCREDS ."
