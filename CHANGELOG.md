@@ -5,6 +5,26 @@ All notable changes to the CDC Aggregator DocStore will be documented in this fi
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/) and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
+## 0.7.0 - 2024-12-19
+
+### Added
+
+- Support more Study attributes. (Implements
+  [#37](https://github.com/cessda/cessda.cdc.aggregator.doc-store/issues/37))
+
+  - `Study.distribution_dates.attr_description`
+  - `Study.research_instruments`
+  - `Study.data_access_desriptions.attr_element_version`
+  - `Study.collection_periods.attr_description`
+
+### Changed
+
+- Require Kuha Common 2.6.0 in requirements.txt.
+- Require Kuha Document Store 1.6.0 in requirements.txt.
+- Require Aggregator Shared Library 0.9.0 in requirements.txt.
+- Require Tornado 6.4.2 in requirements.txt.
+
+
 ## 0.6.0 - 2024-09-05
 
 ### Added
